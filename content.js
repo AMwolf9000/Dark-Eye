@@ -1,12 +1,12 @@
 "use strict";
 
-// regExp to test for default rgba/rgb values
-const rgbaRegexp = /^(rgb\(0, 0, 0\)|rgba\(0, 0, 0, 0\))$/;
 // set what properties you want to change and options for how
-// property should be set in kebab case
+// property should be set in kebab case, 
+// colorGoal is set as sum of the most extreme rgb values that the property would get in a dark page
+// e.g. the max rgb sum of text in a dark page would be 765
 const colorProperties = [
-    {property: "color", changeDefault: false, colorGoal: 765}, 
-    {property: "background-color", changeDefault: false, colorGoal: 0},
+    {property: "color", defaultRGB: "rgb(0, 0, 0)", changeDefault: true, colorGoal: 765}, 
+    {property: "background-color", defaultRGB: "rgba(0, 0, 0, 0)", changeDefault: false, colorGoal: 0},
 ];
 
 setUp();
@@ -16,78 +16,76 @@ async function setUp() {
     // checks if the extension is active
     if (!await chrome.storage.local.get(["isActive"]).then(result => result.isActive ?? false)) return;
     
+    // add intital stylesheet so that page loading appears dark and sets personal default values for properties
     const sheet = document.createElement("style");
     sheet.innerHTML = `
         html, body {
-            color: rgb(235, 235, 235);
-            background-color: rgb(30, 30, 30)
+            color: rgb(235, 235, 235) !important;
+            background-color: rgb(30, 30, 30) !important;
+            scrollbar-color: rgb(100, 100, 100) rgb(50, 50, 50) !important
         }
     `;
     document.head.appendChild(sheet);
 
-
-
+    // promise to check state of body
     const promise = new Promise(resolve => {
+        // checks every n milliseconds
         const intervalID = setInterval(() => {
-            if (document.readyState === "complete") {
+            if (document.body) {
                 clearInterval(intervalID);
                 resolve();
             }
         }, 100);
-
-        setTimeout(() => {
-            clearInterval(intervalID);
-            resolve();
-        }, 3000);
     });
-    await promise;
-    let set = new Set();
+
+    // set to store elements and isDone switch to tell observer to start processing elements directly
+    const set = new Set();
     let isDone = false;
     
-    const observer = new MutationObserver((mutationList) => {
+    // observer to get added elements and change them
+    const bodyObserver = new MutationObserver(mutationList => {
        
-        mutationList.forEach((mutation) => {
+        for (const mutation of mutationList) {
             
-            if (mutation.addedNodes.length === 0) return;
+            // if no elements were added skip
+            if (mutation.addedNodes.length === 0) continue;
 
-            mutation.addedNodes.forEach(node => {
+            for (const node of mutation.addedNodes) {
 
-                if (node.nodeType !== Node.ELEMENT_NODE) return;
+                // if element is not prudent to change skip
+                if (node.nodeType !== Node.ELEMENT_NODE) continue;
                 
+                // add to set until observer is fully set up and intial
+                // elements are processed
                 if (isDone) {
                     switchScheme(node);
-                    node.querySelectorAll('*').forEach(child => switchScheme(child));
+                    // change children nodes as well
+                    node.querySelectorAll('*').forEach(switchScheme);
                 } else {
                     set.add(node);
                 }
-            });
-        });
+            } 
+        }
     });
     
-    observer.observe(document.body, { childList: true, subtree: true });
+    // forces mutation observer to be added before getting all page elements
+    await promise;
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
     
-    Array.from(document.querySelectorAll("body *")).filter(elem => {
-        if (elem.nodeName == "SCRIPT") return false;
-        else return true;
-    }).forEach(elem => {set.add(elem)});
+    // get all the elements from the page after mutation observer is added
+    // to catch elements added before mutation observer was set up
+    Array.from(document.querySelectorAll("body *"))
+    .filter(elem => elem.nodeName !== "SCRIPT")
+    .forEach(elem => set.add(elem));
     isDone = true;
+
+    // change the intital set of elements, further elements will be
+    // processed directly in the observer callback
     set.forEach(switchScheme);
 }
 
-// check if website is in a white or dark theme
-function checkWebState(sumRGB) {
-    let colorTable = {bright: 0, dark: 0};
-
-    sumRGB.forEach((val) => {
-        if (val > 250) colorTable.bright += 1;
-        else colorTable.dark += 1;
-    });
-
-    if (colorTable.bright > colorTable.dark) return true;
-    else return false;
-}
-
-// extract rgb values and condense;
+// extract rgb values and condense
+// returns a sum of the rgb values
 function extractRGB(rgba) {
     const splitRGB = rgba.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
     if (splitRGB[3]) splitRGB.pop();
@@ -119,21 +117,22 @@ function invertColor(rgba) {
 function switchScheme(elem) {
 
     // loop through each property and it's settings
-    for (const {property, changeDefault, colorGoal} of colorProperties) {
+    for (const {property, defaultRGB, changeDefault, colorGoal} of colorProperties) {
         
         // save rgba value
         const rgbaValue = getComputedStyle(elem)[property];
 
+        // change threshold depending on property
         switch (colorGoal) {
             case 0:
-                if (extractRGB(rgbaValue) > 300 || changeDefault && rgbaRegexp.test(rgbaValue)) {
-                    // invert the property's color on the element
+                // invert the property's color on the element if threshold is met
+                if (extractRGB(rgbaValue) > 300 || rgbaValue === defaultRGB && changeDefault) {
                     elem.style.setProperty(property, invertColor(rgbaValue), "important");
                 }
                 break;
             case 765:
-                if (extractRGB(rgbaValue) < 400 || changeDefault && rgbaRegexp.test(rgbaValue)) {
-                    // invert the property's color on the element
+                // invert the property's color on the element if threshold is met
+                if (extractRGB(rgbaValue) < 400 || rgbaValue === defaultRGB && changeDefault) {
                     elem.style.setProperty(property, invertColor(rgbaValue), "important");
                 }
                 break;
