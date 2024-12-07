@@ -2,11 +2,9 @@
   - [x] use "element.style.setProperty()" to set the importance of a property, this is so it can overide !important
   - [x] !detect and change new elements
   - [x] add more defaults to initial stylesheet
-  - [ ] darken images
-  - [ ] darken but don't invert vibrant colors
-  - [ ] add more properties to change (borderColor, boxShadow, etc.)
-  - [ ] add parsing of properties that are gradients and other irregulars
-  - [ ] detect changes to colors in elements
+  - [x] darken images (and video)
+  - [x] darken but don't invert vibrant colors
+  - [x] add parsing of properties that are gradients
   - [ ] add options (e.g. how dark elements are, should images be darkened)
   - [ ] add domain blacklist
   - [ ] test if a site is already dark enough
@@ -16,6 +14,7 @@
   - [ ] add styles to stylesheet instead of inline so :hover works as expected
   - [ ] increase efficiency with code revisions (most likely will include options to disable computationally
         intense tasks)
+  - [ ] check color brightness with luminance formula and adjust color brightness based on that
 
 
 ## Problems 
