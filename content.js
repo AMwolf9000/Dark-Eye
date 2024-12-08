@@ -78,7 +78,7 @@ async function setUp() {
     
     // get all the elements from the page after mutation observer is added
     // to catch elements added before mutation observer was set up
-    Array.from(document.querySelectorAll("body *:not(script)"))
+    Array.from(document.querySelectorAll("body, body *:not(script)"))
     .forEach(elem => set.add(elem));
     isDone = true;
 
@@ -87,81 +87,21 @@ async function setUp() {
     set.forEach(switchScheme);
 }
 
-// extract rgb values and condense
-// returns a sum of the rgb values
-function extractRGB(rgba) {
-    const splitRGB = rgba.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
-    if (splitRGB[3]) splitRGB.pop();
-    return splitRGB.reduce((sum, currentVal) => sum + currentVal);
-}
-
-// invert rgba color
-function invertColor(rgba) {
-
-    // seperate rgba values into an array where each part has one number (r, g, b, a)
-    const seperatedValues = rgba.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
-    // if there is an alpha channel, remove it and save it to alpha
-    const alpha = (seperatedValues[3]) ? seperatedValues.pop() : null;
-
-    // invert the rgb values
-    const newValues = seperatedValues.map(val => Math.min((255 - val) + 20, 255));
-
-    // if there is an alhpa channel, return rgba format with orginal alpha channel. Else return rgb format
-    if (alpha) {
-        newValues.push(alpha);
-        return `rgba(${newValues[0]}, ${newValues[1]}, ${newValues[2]}, ${newValues[3]})`
-    } else {
-        return `rgb(${newValues[0]}, ${newValues[1]}, ${newValues[2]})`
-    }
-    
-}
-
-function decideColor(rgba) {
-    const splitRGB = rgba.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
-    if (splitRGB[3]) splitRGB.pop();
-
-    const maxGap = 50;
-    const r = splitRGB[0];
-    const g = splitRGB[1];
-    const b = splitRGB[2];
-
-    if (Math.abs(r - g) > maxGap || Math.abs(r - b) > maxGap || Math.abs(g - b) > maxGap) {
-        return "fullColor";
-    } else {
-        return "grayscale";
-    }
-}
-
-// the following architecture is similar to invertColor function
-function decreaseBrightness(rgba) {
-    // seperate rgba values into an array where each part has one number (r, g, b, a)
-    const seperatedValues = rgba.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
-    // if there is an alpha channel, remove it and save it to alpha
-    const alpha = (seperatedValues[3]) ? seperatedValues.pop() : null;
-
-    
-    const newValues = seperatedValues.map(val => Math.max(val - 50, 0));
-
-    // if there is an alhpa channel, return rgba format with orginal alpha channel. Else return rgb format
-    if (alpha) {
-        newValues.push(alpha);
-        return `rgba(${newValues[0]}, ${newValues[1]}, ${newValues[2]}, ${newValues[3]})`
-    } else {
-        return `rgb(${newValues[0]}, ${newValues[1]}, ${newValues[2]})`
-    }
-}
-
+// handles gradients
 function invertGradient(gradientString) {
+    // seperate rgba strings from gradient string
     const regexpIterator = gradientString.matchAll(/rgb(a)?\(\d+, \d+, \d+(, (0|1|0?\.\d+))?\)/g);
 
+    // loop through rgba values
     for (const regexpObject of regexpIterator) {
-        const rgb = regexpObject[0];
-        const alpha = rgb.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")))[3]; 
-
-        if (alpha === 0) continue;
-      
-        gradientString = gradientString.replace(rgb, invertColor(rgb));
+        // get rgba value
+        const rgba = regexpObject[0];
+        
+        // replace original rgba values in gradient string with new ones
+        gradientString = gradientString.replace(rgba, handleColor(rgba, 0));
     }
+
+    // return new string
     return gradientString;
 } 
 
@@ -184,25 +124,47 @@ function switchScheme(elem) {
                 continue;
             }
         }
-
-        // change threshold depending on property
-        switch (colorGoal) {
-            case 0:
-                // invert the property's color on the element if threshold is met
-                if (decideColor(rgbaValue) === "fullColor") {
-                    elem.style.setProperty(property, decreaseBrightness(rgbaValue), "important");
-                } else if (extractRGB(rgbaValue) > 300 || rgbaValue === defaultRGB && changeDefault) {
-                    elem.style.setProperty(property, invertColor(rgbaValue), "important");
-                }
-                break;
-            case 765:
-                // invert the property's color on the element if threshold is met
-                if (decideColor(rgbaValue) === "fullColor") {
-                    elem.style.setProperty(property, decreaseBrightness(rgbaValue), "important");
-                } else if (extractRGB(rgbaValue) < 400 || rgbaValue === defaultRGB && changeDefault) {
-                    elem.style.setProperty(property, invertColor(rgbaValue), "important");
-                }
-                break;
-        }  
+        // check if rgbaValue is set / if default value should be changed
+        if (rgbaValue != defaultRGB || changeDefault) {
+            // if true then handleColor
+            elem.style.setProperty(property, handleColor(rgbaValue, colorGoal), "important");
+        }
     }
+}
+
+// will determine what to do with a rgb value
+function handleColor(rgbaValue, colorGoal) {
+    // seperate red, green, blue, and alpha
+    let [r, g, b, a = 1] = rgbaValue.split(",").map(val => Number(val.replace(/[^0-9.]/g, "")));
+
+    // return if color would be invisible
+    if (a == 0) {
+        return rgbaValue;
+    }
+
+    // set thresholds
+    const colorThreshold = 50;
+    const colorGoalThreshold = 382;
+    const luminanceThreshold = 0.5;
+
+    // determine if color is grayscale or fullColor
+    if (Math.abs(r - g) < colorThreshold && Math.abs(r - b) < colorThreshold && Math.abs(g - b) < colorThreshold) {
+        // if color is grayscale and goes over threshold for colorGoal invert
+        if (Math.abs(colorGoal - (r + g + b)) > colorGoalThreshold) {
+            [r, g, b] = [r, g, b].map(n => 255 - n);
+        }
+
+    } else {
+        // normalize values
+        const [R, G, B] = [r, g, b].map(n => n / 255);
+
+        // use luminance formula to check brightness
+        if (0.2126 * R + 0.7152 * G + 0.0722 * B > luminanceThreshold) {
+            // if color is fullColor and bright halve the color's brightness
+            [r, g, b] = [r, g, b].map(n => n * 0.5);
+        }
+    }
+
+    // check for alpha and return final values
+    return (a == 1) ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a})`;
 }
