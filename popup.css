@@ -4,8 +4,8 @@
     padding: 0;
 }
 html {
-    width: 150px;
-    height: max-content;
+    min-width: 150px;
+    height: fit-content;
 }
 body {
     height: 100%;
@@ -59,6 +59,7 @@ h1 {
     display: flex;
     align-items: center;
     flex-direction: column;
+    list-style: none;
     row-gap: 10px;
     height: 100%;
     width: 100%;
