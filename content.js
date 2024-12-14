@@ -10,12 +10,29 @@ const colorProperties = [
     {property: "background-image"}
 ];
 
+// intialize variables to store data from storage
+let isActive, colorThreshold, colorGoalThreshold, luminanceThreshold, imageBrightness;
+
 setUp();
 
 // setup function
 async function setUp() {
+    // get data from storage
+    [
+        isActive = false,
+        colorThreshold = 50,
+        colorGoalThreshold = 382,
+        luminanceThreshold = 0.5,
+        imageBrightness = 1
+    ] = (await getFromStorage([
+        "isActive",
+        "colorThreshold",
+        "colorGoalThreshold",
+        "luminanceThreshold",
+        "imageBrightness"
+    ]));
     // checks if the extension is active
-    if (!await chrome.storage.local.get(["isActive"]).then(result => result.isActive ?? false)) return;
+    if (!isActive) return;
     
     // add intital stylesheet so that page loading appears dark and sets personal default values for properties
     const sheet = document.createElement("style");
@@ -26,7 +43,7 @@ async function setUp() {
             scrollbar-color: rgb(100, 100, 100) rgb(50, 50, 50) !important
         }
         img, video {
-            filter: brightness(0.7) !important
+            filter: brightness(${imageBrightness}) !important
         }
     `;
     document.head.appendChild(sheet);
@@ -78,7 +95,7 @@ async function setUp() {
     
     // get all the elements from the page after mutation observer is added
     // to catch elements added before mutation observer was set up
-    Array.from(document.querySelectorAll("body, body *:not(script)"))
+    Array.from(document.querySelectorAll('body, body *:not(script)'))
     .forEach(elem => set.add(elem));
     isDone = true;
 
@@ -142,11 +159,6 @@ function handleColor(rgbaValue, colorGoal) {
         return rgbaValue;
     }
 
-    // set thresholds
-    const colorThreshold = 50;
-    const colorGoalThreshold = 382;
-    const luminanceThreshold = 0.5;
-
     // determine if color is grayscale or fullColor
     if (Math.abs(r - g) < colorThreshold && Math.abs(r - b) < colorThreshold && Math.abs(g - b) < colorThreshold) {
         // if color is grayscale and goes over threshold for colorGoal invert
@@ -161,10 +173,20 @@ function handleColor(rgbaValue, colorGoal) {
         // use luminance formula to check brightness
         if (0.2126 * R + 0.7152 * G + 0.0722 * B > luminanceThreshold) {
             // if color is fullColor and bright halve the color's brightness
-            [r, g, b] = [r, g, b].map(n => n * 0.5);
+            [r, g, b] = [r, g, b].map(n => n * luminanceThreshold);
         }
     }
 
     // check for alpha and return final values
     return (a == 1) ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+// get data from storage
+function getFromStorage(keys) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(keys, (result) => {
+            const values = keys.map(key => result[key]);
+            resolve(values);
+        });
+    });
 }

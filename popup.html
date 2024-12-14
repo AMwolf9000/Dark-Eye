@@ -3,9 +3,37 @@
 <head>
   <title>Toggle Script</title>
   <script src="popup.js" defer></script>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>Toggle Script</h1>
-  <button id="toggleButton"></button>
+  <header>
+    <h1>Toggle Script</h1>
+    <button id="startButton"></button>
+  </header>
+
+  <input type="checkbox" class="checkboxbt">
+  <label class="optionslabel">Options</label>
+
+  <div class="dropdowncontent">
+    <ul>
+      <button id="resetPrefs">Reset</button>
+      <li>
+        <label id="colorThreshold">colorThreshold: </label>
+        <input type="range" max="255" min="0" value="50" class="slidercheckbox">
+      </li>
+      <li>
+        <label id="colorGoalThreshold">colorGoalThreshold: </label>
+        <input type="range" max="765" min="0" value="382" class="slidercheckbox">
+      </li>
+      <li>
+        <label id="luminanceThreshold">luminanceThreshold: </label>
+        <input type="range" max="1" min="0" step="0.1" value="0.5" class="slidercheckbox">
+      </li>
+      <li>
+        <label id="imageBrightness">imageBrightness: </label>
+        <input type="range" max="1" min="0" step="0.1" value="1" class="slidercheckbox">
+      </li>
+    </ul>
+  </div>
 </body>
 </html>

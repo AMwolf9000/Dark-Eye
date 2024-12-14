@@ -1,0 +1,73 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+html {
+    width: 150px;
+    height: max-content;
+}
+body {
+    height: 100%;
+    width: 100%;
+    background-color: rgb(30, 30, 30);
+    color: rgb(225, 225, 225);
+    padding: 5px;
+}
+header, body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+header {
+    margin-bottom: 10px;
+}
+h1 {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.optionslabel {
+    position: relative;
+    top: -20px;
+    background-color: black;
+}
+.checkboxbt {
+    appearance: none;
+    width: 40%;
+    height: 20px;
+    background-color: transparent;
+    z-index: 2;
+}
+
+
+.optionslabel::after {
+    content: "\2193";
+    display: inline-block;
+    transition: rotate 0.5s;
+}
+
+
+.dropdowncontent {
+    height: fit-content;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 1s;
+}
+.dropdowncontent ul {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    row-gap: 10px;
+    height: 100%;
+    width: 100%;
+}
+
+
+.checkboxbt:checked ~ .dropdowncontent {
+    max-height: 201px;
+}
+.checkboxbt:checked ~ .optionslabel::after {
+    rotate: 180deg;
+}

@@ -5,7 +5,7 @@
   - [x] darken images (and video)
   - [x] darken but don't invert vibrant colors
   - [x] add parsing of properties that are gradients
-  - [ ] add options (e.g. how dark elements are, should images be darkened, and thresholds for changing color values)
+  - [x] add options (e.g. how dark elements are, should images be darkened, and thresholds for changing color values)
   - [ ] add domain blacklist
   - [ ] test if a site is already dark enough
 
@@ -15,6 +15,8 @@
   - [ ] add styles to stylesheet instead of inline so :hover works as expected
   - [ ] increase efficiency with code revisions (most likely will include options to disable computationally
         intense tasks)
+  - [ ] add a contrast slider which will increase brightness of vlaues, brighter values get higher increase in brightness 
+        while darker values get a lower increase in brightness.
 
 
 ## Fixed problems
