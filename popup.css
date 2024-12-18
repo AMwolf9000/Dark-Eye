@@ -67,7 +67,7 @@ h1 {
 
 
 .checkboxbt:checked ~ .dropdowncontent {
-    max-height: 201px;
+    max-height: 230px;
 }
 .checkboxbt:checked ~ .optionslabel::after {
     rotate: 180deg;

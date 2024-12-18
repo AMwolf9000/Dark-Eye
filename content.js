@@ -11,7 +11,7 @@ const colorProperties = [
 ];
 
 // intialize variables to store data from storage
-let isActive, colorThreshold, colorGoalThreshold, luminanceThreshold, imageBrightness;
+let isActive, colorThreshold, colorGoalThreshold, luminanceThreshold, imageBrightness, blacklist;
 
 setUp();
 
@@ -23,17 +23,19 @@ async function setUp() {
         colorThreshold = 50,
         colorGoalThreshold = 382,
         luminanceThreshold = 0.5,
-        imageBrightness = 1
+        imageBrightness = 1,
+        blacklist = ""
     ] = (await getFromStorage([
         "isActive",
         "colorThreshold",
         "colorGoalThreshold",
         "luminanceThreshold",
-        "imageBrightness"
+        "imageBrightness",
+        "blacklist"
     ]));
-    // checks if the extension is active
-    if (!isActive) return;
-    
+    // checks if the extension is active and if site is in blacklist
+    if (!isActive || location.host && blacklist.includes(location.host)) return;
+
     // add intital stylesheet so that page loading appears dark and sets personal default values for properties
     const sheet = document.createElement("style");
     sheet.innerHTML = `
@@ -106,30 +108,20 @@ async function setUp() {
 
 // handles gradients
 function invertGradient(gradientString) {
-    // seperate rgba strings from gradient string
-    const regexpIterator = gradientString.matchAll(/rgb(a)?\(\d+, \d+, \d+(, (0|1|0?\.\d+))?\)/g);
-
-    // loop through rgba values
-    for (const regexpObject of regexpIterator) {
-        // get rgba value
-        const rgba = regexpObject[0];
-        
-        // replace original rgba values in gradient string with new ones
-        gradientString = gradientString.replace(rgba, handleColor(rgba, 0));
-    }
-
-    // return new string
-    return gradientString;
+    // get rgba matches and invert their colors
+    return gradientString.replace(/rgb(a)?\(\d+, \d+, \d+(, (0|1|0?\.\d+))?\)/g, (rgbaString) => handleColor(rgbaString, 0));
 } 
 
 // switch to dark
 function switchScheme(elem) {
+    // get computer style of elem
+    const computedStyle = getComputedStyle(elem);
 
     // loop through each property and it's settings
     for (const {property, defaultRGB, changeDefault, colorGoal} of colorProperties) {
         
         // save rgba value
-        const rgbaValue = getComputedStyle(elem)[property];
+        const rgbaValue = computedStyle[property];
 
         // test for background property 
         if (property === "background-image") {

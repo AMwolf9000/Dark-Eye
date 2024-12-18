@@ -6,8 +6,7 @@
   - [x] darken but don't invert vibrant colors
   - [x] add parsing of properties that are gradients
   - [x] add options (e.g. how dark elements are, should images be darkened, and thresholds for changing color values)
-  - [ ] add domain blacklist
-  - [ ] test if a site is already dark enough
+  - [x] add domain blacklist
 
 
 ## Improvements
@@ -17,6 +16,7 @@
         intense tasks)
   - [ ] add a contrast slider which will increase brightness of vlaues, brighter values get higher increase in brightness 
         while darker values get a lower increase in brightness.
+  - [ ] option to test if site is dark enough already
 
 
 ## Fixed problems

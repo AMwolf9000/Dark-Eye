@@ -16,19 +16,33 @@
         thresh1 = 50,
         thresh2 = 382,
         thresh3 = 0.5,
-        thresh4 = 1
+        thresh4 = 1,
+        blacklist = ""
     ] = (await getFromStorage([
         "isActive",
         "colorThreshold",
         "colorGoalThreshold",
         "luminanceThreshold",
-        "imageBrightness"
+        "imageBrightness",
+        "blacklist"
     ]));
+
+    // get current hostname
+    const [tab] = await chrome.tabs.query({active: true});
+    const url = new URL(tab.url);
+    const host = url.host || null;
+
+    // check if current site is in blacklist
+    let isBlacklist = false;
+    if (host && blacklist.includes(host)) {
+        isBlacklist = !isBlacklist;
+    }
 
     // get elements
     const [
         bt1,
         bt2,
+        bt3,
         label1,
         label2,
         label3,
@@ -40,6 +54,7 @@
     ] = [
         document.getElementById("startButton"),
         document.getElementById("resetPrefs"),
+        document.getElementById("blacklistbt"),
         document.getElementById("colorThreshold"),
         document.getElementById("colorGoalThreshold"),
         document.getElementById("luminanceThreshold"),
@@ -58,6 +73,11 @@
 
         // set up bt1
         bt1.innerHTML = isActive ? "Deactivate" : "Activate";
+
+        // set up bt3
+        if (isBlacklist) {
+            bt3.innerHTML = "whitelist site";
+        }
 
         // set up labels and inputs
         for (let i = 0; i < 4; ++i) {
@@ -116,4 +136,34 @@
         input3.value = 0.5;
         input4.value = 1;
     });
+    bt3.addEventListener("click", () => {
+        // if the host cannot be defined, return
+        if (!host) return;
+
+        if (isBlacklist) {
+            // change isBlacklist state
+            isBlacklist = !isBlacklist;
+
+            // change visual
+            bt3.innerHTML = "blacklist site";
+
+            // take site out of blacklist
+            blacklist = blacklist.replace(host + ",", "");
+
+            // save to storage
+            chrome.storage.local.set({blacklist: blacklist});
+        } else {
+            // change isBlacklist state
+            isBlacklist = !isBlacklist;
+
+            // change visual
+            bt3.innerHTML = "whitelist site";
+
+            // put site in blacklist
+            blacklist += host + ",";
+
+            // save to storage
+            chrome.storage.local.set({blacklist: blacklist});
+        }
+    })
 })()
