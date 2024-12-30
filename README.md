@@ -5,5 +5,5 @@ Chrome: Download to zip file (make sure to unzip and extract the files before tr
         and select the root folder which has the files in it.
 
 Firefox: DOES NOT WORK ON CURRENT VERSION
-         use version 1.2.0 instead 
+         use version 1.2.0 instead in branch: Firefox-stable
          (will be fixed at a later date)
