@@ -1,5 +1,5 @@
 ## Basic
-  - [x] use "element.style.setProperty()" to set the importance of a property, this is so it can overide !important
+  - [x] use "element.style.setProperty()" to set the importance of a property, this is so it can override !important
   - [x] !detect and change new elements
   - [x] add more defaults to initial stylesheet
   - [x] darken images (and video)
@@ -11,12 +11,11 @@
 
 ## Improvements
   - [x] check color brightness with luminance formula and adjust color brightness based on that
-  - [ ] add styles to stylesheet instead of inline so :hover works as expected
+  - [x] add styles to stylesheet instead of inline so :hover and other psuedo-classes and psudeo-elements work as expected
   - [ ] increase efficiency with code revisions (most likely will include options to disable computationally
         intense tasks)
-  - [ ] add a contrast slider which will increase brightness of vlaues, brighter values get higher increase in brightness 
-        while darker values get a lower increase in brightness.
-  - [ ] option to test if site is dark enough already
+  - [ ] add a optional sliders for filters that go over the entire site (via html element), like contrast and brightness filters
+  - [ ] option to test if site is dark enough already (with override)
 
 
 ## Fixed problems

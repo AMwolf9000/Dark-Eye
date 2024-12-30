@@ -1,9 +1,12 @@
 {
     "manifest_version": 3,
     "name": "Ultimate Web Dark Mode",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Will try it's best to put any website into dark mode",
     "permissions": ["storage", "scripting", "activeTab"],
+    "background": {
+        "service_worker": "background.js"
+    },
     "host_permissions": ["<all_urls>"],
     "content_scripts": [
         {
