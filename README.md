@@ -4,4 +4,4 @@ Chrome: Download to zip file (make sure to unzip and extract the files before tr
         then go to chrome -> manage extensions -> turn on dev mode (top right) -> load unpacked 
         and select the root folder which has the files in it.
 
-Firefox: Use branchs Firefox-stable instead
+Firefox: Use branch Firefox-stable instead
