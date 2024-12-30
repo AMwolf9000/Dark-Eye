@@ -17,14 +17,16 @@
         thresh2 = 382,
         thresh3 = 0.5,
         thresh4 = 1,
-        blacklist = ""
+        blacklist = "",
+        stylesheetParser = 0
     ] = (await getFromStorage([
         "isActive",
         "colorThreshold",
         "colorGoalThreshold",
         "luminanceThreshold",
         "imageBrightness",
-        "blacklist"
+        "blacklist",
+        "stylesheetParser"
     ]));
 
     // get current hostname
@@ -50,7 +52,8 @@
         input1,
         input2,
         input3,
-        input4
+        input4,
+        input5
     ] = [
         document.getElementById("startButton"),
         document.getElementById("resetPrefs"),
@@ -62,7 +65,8 @@
         document.getElementById("colorThreshold").nextElementSibling,
         document.getElementById("colorGoalThreshold").nextElementSibling,
         document.getElementById("luminanceThreshold").nextElementSibling,
-        document.getElementById("imageBrightness").nextElementSibling
+        document.getElementById("imageBrightness").nextElementSibling,
+        document.getElementById("stylesheetParser").nextElementSibling
     ];
 
     // set up intial values
@@ -86,6 +90,7 @@
             label.innerHTML = label.innerHTML + val;
             input.value = val;
         }
+        input5.value = stylesheetParser;
     }
     intialSetup();
 
@@ -94,8 +99,11 @@
     .forEach((input) => {
         input.oninput = () => update(input.previousElementSibling, input.value);
     });
+    input5.oninput = () => {
+        chrome.storage.local.set({ stylesheetParser: input5.value });
+    }
 
-    // updates visuals and sotrage of label data
+    // updates visuals and storage of label data
     function update(label, val){
         // set visual
         label.innerHTML = label.innerHTML.split(":")[0] + ": " + val;
