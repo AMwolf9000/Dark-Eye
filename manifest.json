@@ -5,7 +5,7 @@
     "description": "Will try it's best to put any website into dark mode",
     "permissions": ["storage", "scripting", "activeTab"],
     "background": {
-        "service_worker": "background.js"
+        "scripts": ["background.js"]
     },
     "host_permissions": ["<all_urls>"],
     "content_scripts": [
