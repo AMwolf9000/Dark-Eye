@@ -1,15 +1,14 @@
 // async function for await execution
 ( async () => {
-    // function for getting value from storage
-    function getFromStorage(keys) {
-        return new Promise((resolve) => {
-            chrome.storage.local.get(keys, (result) => {
-                const values = keys.map(key => result[key]);
-                resolve(values);
-            });
-        });
-    }
-
+    // keys to get from storage
+    const keys = [
+        "isActive",
+        "colorThreshold",
+        "colorGoalThreshold",
+        "luminanceThreshold",
+        "imageBrightness",
+        "blacklist"
+    ];
     // set values from storage as variables and set them to default if stored data is not found
     let [
         isActive = false,
@@ -17,17 +16,13 @@
         thresh2 = 382,
         thresh3 = 0.5,
         thresh4 = 1,
-        blacklist = "",
-        stylesheetParser = 0
-    ] = (await getFromStorage([
-        "isActive",
-        "colorThreshold",
-        "colorGoalThreshold",
-        "luminanceThreshold",
-        "imageBrightness",
-        "blacklist",
-        "stylesheetParser"
-    ]));
+        blacklist = ""
+    ] = await new Promise((resolve) => {
+        chrome.storage.local.get(keys, (result) => {
+            const values = keys.map(key => result[key]);
+            resolve(values);
+        });
+    });
 
     // get current hostname
     const [tab] = await chrome.tabs.query({active: true});
@@ -52,8 +47,7 @@
         input1,
         input2,
         input3,
-        input4,
-        input5
+        input4
     ] = [
         document.getElementById("startButton"),
         document.getElementById("resetPrefs"),
@@ -65,8 +59,7 @@
         document.getElementById("colorThreshold").nextElementSibling,
         document.getElementById("colorGoalThreshold").nextElementSibling,
         document.getElementById("luminanceThreshold").nextElementSibling,
-        document.getElementById("imageBrightness").nextElementSibling,
-        document.getElementById("stylesheetParser").nextElementSibling
+        document.getElementById("imageBrightness").nextElementSibling
     ];
 
     // set up intial values
@@ -90,7 +83,6 @@
             label.innerHTML = label.innerHTML + val;
             input.value = val;
         }
-        input5.value = stylesheetParser;
     }
     intialSetup();
 
@@ -99,9 +91,6 @@
     .forEach((input) => {
         input.oninput = () => update(input.previousElementSibling, input.value);
     });
-    input5.oninput = () => {
-        chrome.storage.local.set({ stylesheetParser: input5.value });
-    }
 
     // updates visuals and storage of label data
     function update(label, val){
